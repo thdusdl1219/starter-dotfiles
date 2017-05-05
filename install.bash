@@ -41,6 +41,21 @@ function setup_zsh() {
   fi
 }
 
+function setup_gdb() {
+  echo 'Adding pwndbg to dotfiles...'
+  DBGDIR=~/.dotfiles/pwndbg
+
+  if [ -d "$DBGDIR" ] ; then
+    echo 'Already exist pwndbg'
+  else
+    echo 'Adding pwndbg to dotfiles...'
+    git clone https://github.com/pwndbg/pwndbg.git
+    cd $DBGDIR
+    ./setup.sh
+    cd -
+  fi
+}
+
 function determine_shell() {
   echo 'Please pick your favorite shell:'
   echo '(1) Bash'
@@ -56,9 +71,25 @@ function determine_shell() {
   fi
 }
 
+
+function setup_editor() {
+  echo 'setup vim...'
+  EDIDIR=~/.dotfiles/vim
+
+  if [ -d "$EDIDIR" ] ; then
+    echo 'Updating vimrc to latest version'
+    cd ~/.dotfiles/vim
+    git pull origin master
+    cd -
+  else
+    echo 'Adding vimrc to vim'
+    git clone https://github.com/posquit0/vimrc $EDIDIR
+  fi
+}
+
 function setup_vim() {
   echo "Setting up vim...ignore any vim errors post install"
-  vim +BundleInstall +qall
+  vim +PlugInstall +qall now
 }
 
 function setup_git() {
@@ -78,7 +109,7 @@ function setup_git() {
 # Adds a symbolic link to files in ~/.dotfiles
 # to your home directory.
 function symlink_files() {
-  ignoredfiles=(LICENSE README.md install.bash update-zsh.sh)
+  ignoredfiles=(LICENSE README.md install.bash update-zsh.sh pwndbg)
 
   for f in $(ls -d *); do
     if [[ ${ignoredfiles[@]} =~ $f ]]; then
@@ -99,6 +130,16 @@ function symlink_files() {
       if [[ $LOGIN_SHELL == 'zsh' ]] ; then
         link_file $f
       fi
+    elif [[ $f =~ 'vim' ]] ; then
+      link_file $f
+      if ! $(ln -Ts "$PWD/vim/vimrc" "$HOME/.vimrc"); then
+        echo "Replace file '~/.vimrc'?"
+        read -p "[Y/n]?: " Q_REPLACE_FILE
+        if [[ $Q_REPLACE_FILE != 'n' ]]; then
+          echo "replacing ~/.vimrc"
+          ln -sf "$PWD/vim/vimrc" "$HOME/.vimrc"
+        fi
+      fi
     else
         link_file $f
     fi
@@ -109,7 +150,7 @@ function symlink_files() {
 # arguments: filename
 function link_file(){
   echo "linking ~/.$1"
-  if ! $(ln -s "$PWD/$1" "$HOME/.$1");  then
+  if ! $(ln -sT "$PWD/$1" "$HOME/.$1");  then
     echo "Replace file '~/.$1'?"
     read -p "[Y/n]?: " Q_REPLACE_FILE
     if [[ $Q_REPLACE_FILE != 'n' ]]; then
@@ -122,7 +163,7 @@ function link_file(){
 # arguments: filename
 function replace_file() {
   echo "replacing ~/.$1"
-  ln -sf "$PWD/$1" "$HOME/.$1"
+  ln -sfT "$PWD/$1" "$HOME/.$1"
 }
 
 set -e
@@ -168,6 +209,8 @@ set -e
   fi
 
   #setup_git
+  setup_editor
+  setup_gdb
   symlink_files
   setup_vim
 
