@@ -72,6 +72,7 @@ function setup_git() {
   git config --global color.diff auto
   git config --global color.status auto
   git config --global color.branch auto
+  git config --global alias.lg "log --color --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit"
 }
 
 # Adds a symbolic link to files in ~/.dotfiles
@@ -166,7 +167,7 @@ set -e
     setup_zsh
   fi
 
-  setup_git
+  #setup_git
   symlink_files
   setup_vim
 
