@@ -1,0 +1,7 @@
+Host pika
+  HostName pikachu.d1.comp.nus.edu.sg
+  User soyeon
+
+Host rai
+  HostName raichu.d1.comp.nus.edu.sg
+  User soyeon
