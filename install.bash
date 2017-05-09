@@ -87,6 +87,21 @@ function setup_editor() {
   fi
 }
 
+function setup_tmux() {
+  echo 'setup tmux...'
+  TMUXDIR=~/.dotfiles/tmux
+
+  if [ -d "$TMUXDIR" ] ; then
+    echo 'Updating tmuxdir to latest version'
+    cd $TMUXDIR
+    git pull origin master
+    cd -
+  else
+    echo 'Adding tmuxdir to tmux'
+    git clone --recursive https://github.com/posquit0/tmux-conf.git $TMUXDIR
+  fi
+}
+
 function setup_vim() {
   echo "Setting up vim...ignore any vim errors post install"
   vim +PlugInstall +qall now
@@ -138,6 +153,16 @@ function symlink_files() {
         if [[ $Q_REPLACE_FILE != 'n' ]]; then
           echo "replacing ~/.vimrc"
           ln -sf "$PWD/vim/vimrc" "$HOME/.vimrc"
+        fi
+      fi
+    elif [[ $f =~ 'tmux' ]] ; then
+      link_file $f
+      if ! $(ln -Ts "$PWD/tmux/tmux.conf" "$HOME/.tmux.conf"); then
+        echo "Replace file '~/.tmux.conf'?"
+        read -p "[Y/n]?: " Q_REPLACE_FILE
+        if [[ $Q_REPLACE_FILE != 'n' ]]; then
+          echo 'replacing ~/.tmux.conf'
+          ln -sf "$PWD/tmux/tmux.conf" "$HOME/.tmux.conf"
         fi
       fi
     else
@@ -211,8 +236,11 @@ set -e
   #setup_git
   setup_editor
   setup_gdb
+  setup_tmux
   symlink_files
   setup_vim
+  ./tmux/plugins/tpm/scripts/install_plugins.sh
+
 
   if [[ $LOGIN_SHELL == 'bash' ]] ; then
     echo "Operating System setup complete."
